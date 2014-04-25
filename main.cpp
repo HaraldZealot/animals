@@ -16,6 +16,8 @@ void initNode(Node *node, char str[]);
 bool playGame(Node *&root);
 void deleteTree(Node *&root);
 void saveToFile(Node *root, char *str);
+//TODO
+//Node *loadFromFile(char *str);
 
 
 int main()
