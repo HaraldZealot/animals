@@ -4,11 +4,11 @@
 #include <cassert>
 using namespace std;
 
-const int buferSize = 256;
+const int bufferSize = 256;
 
 struct Node
 {
-    char content[buferSize];
+    char content[bufferSize];
     Node *yesLink, *noLink, *parent;
 };
 
@@ -16,27 +16,24 @@ void initNode(Node *node, char str[]);
 bool playGame(Node *&root);
 void deleteTree(Node *&root);
 void saveToFile(Node *root, char *str);
-//TODO
-//Node *loadFromFile(char *str);
+Node *initTree(char *str);
+
 
 
 int main()
 {
     Node *root = NULL;
-    root = new Node;
     {
-        char str[buferSize] = "кот";
-        initNode(root, str);
+        char fileName[bufferSize] = "database.txt";
+        root = initTree(fileName);
     }
 
     while(playGame(root));
 
     {
-        char str[buferSize] = "database.txt";
-        saveToFile(root, str);
+        char fileName[bufferSize] = "database.txt";
+        saveToFile(root, fileName);
     }
-
-
     deleteTree(root);
     return 0;
 }
@@ -56,15 +53,71 @@ void deleteTree(Node *&node)
     node->parent = NULL;
     node->yesLink = NULL;
     node->noLink = NULL;
-    memset(node->content, 0, buferSize);
+    memset(node->content, 0, bufferSize);
     delete node;
     node = NULL;
+}
+
+Node *loadFromFile(istream &in, const Node *const parent);
+Node *initTree(char *str)
+{
+    bool fileExist = false;
+    ifstream fin;
+
+    if(str)
+    {
+        fin.open(str, ios::binary | ios::in);
+
+        if(fin)
+            fileExist = true;
+        else
+            cerr << "file can't open\n";
+    }
+
+    if(fileExist)
+    {
+        return loadFromFile(fin, NULL);
+    }
+    else
+    {
+        Node *root = NULL;
+        root = new Node;
+        {
+            char cat[bufferSize] = "кот";
+            initNode(root, cat);
+        }
+        return root;
+    }
+}
+Node *loadFromFile(istream &in, const Node *const parent)
+{
+
+    if(!in.eof())
+    {
+       char meanNode, unused, buffer[bufferSize];
+       in.get(meanNode);
+       in.get(unused);
+       in.read(buffer, bufferSize);
+       in.get(unused);
+       Node *node = NULL;
+       node = new Node;
+       initNode(node, buffer);
+       node->parent = (Node *)parent;
+       if(meanNode == 'q')
+       {
+           node->yesLink=loadFromFile(in,node);
+           node->noLink=loadFromFile(in,node);
+       }
+       return node;
+    }
+    return NULL;
 }
 
 void saveTree(Node *root, ostream &out);
 void saveToFile(Node *root, char *str)
 {
-    ofstream fout(str, ios::binary|ios::trunc|ios::out);
+    ofstream fout(str, ios::binary | ios::trunc | ios::out);
+
     if(fout)
     {
         saveTree(root, fout);
@@ -82,7 +135,7 @@ void saveTree(Node *node, ostream &out)
         out.put('q');
 
     out.put(' ');
-    out.write(node->content, buferSize);
+    out.write(node->content, bufferSize);
     out.put('\n');
 
     if(node->yesLink)
@@ -94,7 +147,7 @@ void saveTree(Node *node, ostream &out)
 
 void initNode(Node *node, char str[])
 {
-    memset(node->content, 0, buferSize);
+    memset(node->content, 0, bufferSize);
     strcpy(node->content, str);
     node->parent = NULL;
     node->yesLink = NULL;
@@ -136,12 +189,12 @@ bool isAnimal(Node *node)
 
 bool playerRespond()
 {
-    char answer[buferSize];
+    char answer[bufferSize];
 
     do
     {
         cout << "Введите да/нет\n";
-        cin.getline(answer, buferSize);
+        cin.getline(answer, bufferSize);
 
         if(strcmp("да", answer) != 0 && strcmp("нет", answer) != 0)
             cout << "Только \"да\" или \"нет\"\n";
@@ -159,13 +212,13 @@ void addNewAnimal(Node *oldAnimal, Node *&root)
         path = parent->yesLink == oldAnimal;
 
     cout << "Что это за животное?\n";
-    char answer[buferSize];
-    cin.getline(answer, buferSize);
+    char answer[bufferSize];
+    cin.getline(answer, bufferSize);
     Node *newAnimal = NULL;
     newAnimal = new Node;
     initNode(newAnimal, answer);
     cout << "Задайте вопрос, который отличает " << oldAnimal->content << " от " << newAnimal->content << endl;
-    cin.getline(answer, buferSize);
+    cin.getline(answer, bufferSize);
     Node *newQuestion = NULL;
     newQuestion = new Node;
     initNode(newQuestion, answer);
